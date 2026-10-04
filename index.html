@@ -78,6 +78,7 @@ footer{padding:18px 22px;color:var(--muted);font-size:12px;border-top:1px solid 
 <header><div><h1>Daily CORE Development</h1><div class="sub">All 28 exercises in one flexible daily routine — choose what you want to perform each day</div><div id="compatStatus" style="margin-top:6px;font-size:12px;opacity:.9">iOS Safari Web App • Open from an HTTPS address, then Add to Home Screen</div></div>
 <div class="controls"><button class="btn" onclick="setStart()">Set Day 1 Date</button><button class="btn" onclick="printArchive()">Print / Save PDF</button><button class="btn" onclick="resetData()">Archive & Start Next 14 Days</button><button class="btn" onclick="showArchiveHistory()">Archive History</button></div></header>
 <nav class="tabs" id="tabs"></nav>
+<div id="saveStatus" role="status" aria-live="polite" style="position:sticky;top:0;z-index:30;text-align:center;padding:7px 12px;font-size:13px;font-weight:800;background:#e8f4f7;color:#0f4f66;border-bottom:1px solid #d8e0e8">✓ Saved on this iPhone</div>
 <main id="main"><section class="page active" style="display:block;padding:18px">
 <h2>Loading Daily CORE Development…</h2>
 <p>The 14-day exercise table and Exercise Reference will appear here automatically.</p>
@@ -100,9 +101,27 @@ let state=loadState();
 if(!state.start) state.start=new Date().toISOString().slice(0,10);
 if(!state.records) state.records={};
 if(!Array.isArray(state.archives)) state.archives=[];
+function setSaveStatus(ok){
+ var el=document.getElementById("saveStatus");
+ if(!el)return;
+ if(ok){
+  var now=new Date();
+  el.textContent="✓ Saved on this iPhone · "+now.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
+  el.style.background="#e8f4f7";
+  el.style.color="#0f4f66";
+ }else{
+  el.textContent="⚠ Unable to save on this device";
+  el.style.background="#fff3cd";
+  el.style.color="#7a4b00";
+ }
+}
 function save(){
- try{if(storageOK)localStorage.setItem(KEY,JSON.stringify(state))}
- catch(e){storageOK=false}
+ try{
+  if(storageOK){
+   localStorage.setItem(KEY,JSON.stringify(state));
+   setSaveStatus(true);
+  }else setSaveStatus(false);
+ }catch(e){storageOK=false;setSaveStatus(false)}
 }
 function dates(){
  let d=new Date(state.start+"T12:00:00"), a=[];
